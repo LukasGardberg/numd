@@ -1,4 +1,4 @@
-import functions as f
+from P2 import functions as f
 import numpy as np
 import matplotlib.pyplot as plt
 
