@@ -91,21 +91,29 @@ def func_I(x,L):
     
 
 def beamSolve(fvec, L, N):
-    # Boundary values alpha and beta are assumed to be the same for the beam problem
+    # Solves the beam equation for given q, M, E and I
+
+    # Bounry values:
     m0 = 0
     m1 = 0
     u0 = 0
     u1 = 0
     E = 1.9*10**11
-    y = twopBVP(fvec,m0,m1,L,N)
-    
-    y = np.delete(y,0)
-    y = np.delete(y,-1)
-    
+
+    # Find M from M'' = q
+    m = twopBVP(fvec,m0,m1,L,N)
+
+    # Remove endpoints in order to use the solver in the next step
+    m = np.delete(m,0)
+    m = np.delete(m,-1)
+
+
     points = np.linspace(L/(N+1), L - L/(N+1), N)
-    i = func_I(points,L)
-    fvec = np.divide(y,i*E)
-    
+    i_func = func_I(points, L)
+
+    # Function values for u'' = M/IE
+    fvec = np.divide(m,i_func*E)
+
+    # Use solver to get solution for u
     u = twopBVP(fvec, u0, u1, L, N)
     return u
-    
