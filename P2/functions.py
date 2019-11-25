@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import exp, sparse
+from scipy import exp, sparse,sin,cos ,pi
 from scipy.sparse.linalg import spsolve
 from scipy.linalg import norm
 import matplotlib.pyplot as plt
@@ -41,6 +41,15 @@ def test_f(x):
 
     return exp(-x)
 
+def test_fsin(x):
+    # apply function fsin to array x
+    # x assumed to be column np array
+    return sin(x)
+
+
+def exact_sin(x, alpha ,beta ,L):
+    return alpha -sin(x) + x*(beta + sin(L)-alpha)/L
+
 
 def exact_f(x, alpha, beta, L):
     return exp(-x) + alpha - 1 + (x/L) * (beta - alpha + 1 - exp(-L))
@@ -51,8 +60,6 @@ def vshBvp(alpha, beta, length, N):
     step_sizes = np.array([])
 
     for k in N:
-        print(length)
-        print(k)
         step_size = length / (k + 1)
         x = np.linspace(step_size, length - step_size, k)
         fvec = test_f(x)
@@ -72,3 +79,33 @@ def vshBvp(alpha, beta, length, N):
     plt.loglog(step_sizes, errors)
     plt.grid()
     plt.show()
+    
+    
+def func_q(x):
+    #returns 1d array with -50kN
+    return -5*10**4 * np.ones(len(x))
+
+
+def func_I(x,L):
+     return (3-2*np.power(cos(x*pi/L),12))* 10**-3
+    
+
+def beamSolve(fvec, L, N):
+    # Boundary values alpha and beta are assumed to be the same for the beam problem
+    m0 = 0
+    m1 = 0
+    u0 = 0
+    u1 = 0
+    E = 1.9*10**11
+    y = twopBVP(fvec,m0,m1,L,N)
+    
+    y = np.delete(y,0)
+    y = np.delete(y,-1)
+    
+    points = np.linspace(L/(N+1), L - L/(N+1), N)
+    i = func_I(points,L)
+    fvec = np.divide(y,i*E)
+    
+    u = twopBVP(fvec, u0, u1, L, N)
+    return u
+    
