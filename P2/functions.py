@@ -177,4 +177,7 @@ def sturm_lv_vis():
     eigvecs = eigvecs[:, -3:]
     x = np.linspace(0, L, N+2)
     plt.plot(x, np.flip(eigvecs[:, 1]))
+
+    print(eigs)
+
     plt.show()
