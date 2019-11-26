@@ -146,24 +146,35 @@ def sv_solver(alpha, beta, L, N):
 def sturm_lv_vis():
     # Plots error vs N for three first eigenvalues
     L = 1
-    K = np.arange(2, 5)
+    K = np.arange(2, 12)
     K = 2**K
-
-    err = np.zeros((10, 3))
+    err = np.zeros((len(K), 3))
 
     n = 0
     # For each number of points, calculate the eigenvalues
     for N in K:
         eigs, _ = sv_solver(0, 0, L, N)
         eigs = eigs[:3]
-
         # Find the error for each eigenvalue
         for i in range(3):
+            
             err[n, i] = norm(eigs[i] - (i * pi)**2)
-
+            
         n = n + 1
 
     for i in range(3):
         plt.figure(i)
-        plt.plot(K, err[i, :])
+        plt.loglog(K, err[:,i])
         plt.show()
+
+
+    plt.figure(4)
+    N = 19
+    eigs, eigvecs = sv_solver(0,0,L,N)
+    eigs = eigs[:3]
+    eigvecs = eigvecs[:,:3]
+    print(eigs)
+    x = np.linspace(0, L, N+2)
+    plt.plot(x,eigvecs[:,1])
+    print(np.shape(x))
+    plt.show()

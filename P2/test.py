@@ -55,7 +55,7 @@ beta = 0
 L = 1
 N = 100
 
-# eigs, eig_vecs = f.sv_solver(alpha, beta, L, N)
+
 
 f.sturm_lv_vis()
 
