@@ -55,7 +55,5 @@ beta = 0
 L = 1
 N = 100
 
-
-
 f.sturm_lv_vis()
 
