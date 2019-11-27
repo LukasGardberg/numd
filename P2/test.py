@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.linalg import norm
 
 # L = 10
-#
-# # Interior grid points
+# #
+# # # Interior grid points
 # N = 100
 # alpha = 1
 # beta = 2
@@ -27,10 +27,10 @@ from scipy.linalg import norm
 # plt.show()
 # plt.plot(points,yexact,'or')
 # plt.show()
-# #K = np.arange(1,10)
-# #K = 2**K
-# #f.vshBvp(alpha, beta, L, K)
-#
+# K = np.arange(1,10)
+# K = 2**K
+# f.vshBvp(alpha, beta, L, K)
+
 # #%% beam deflection section
 # N = 999
 # L = 10
@@ -50,10 +50,13 @@ from scipy.linalg import norm
 #
 # #%% section 2
 
-alpha = 0
-beta = 0
+# alpha = 0
+# beta = 0
+# L = 1
+# N = 100
+#
+# f.sturm_lv_vis()
 L = 1
 N = 100
 
-f.sturm_lv_vis()
-
+a = f.shrod_solve(L, N, f.potential_v, 6)

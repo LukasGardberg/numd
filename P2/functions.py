@@ -57,6 +57,8 @@ def exact_f(x, alpha, beta, L):
 
 
 def vshBvp(alpha, beta, length, N):
+    # Plots error for different N, where N
+    # is a vecktor with step sizes 2^k
     errors = np.array([])
     step_sizes = np.array([])
 
@@ -107,7 +109,6 @@ def beamSolve(fvec, L, N):
     # Remove endpoints in order to use the solver in the next step
     m = np.delete(m,0)
     m = np.delete(m,-1)
-
 
     points = np.linspace(L/(N+1), L - L/(N+1), N)
     i_func = func_I(points, L)
@@ -181,3 +182,61 @@ def sturm_lv_vis():
     print(eigs)
 
     plt.show()
+
+
+def potential_v(x):
+    # Returns a 1-D np array
+    return np.zeros(len(x))
+
+
+def shrod_solve(L, N, potential_f, n_eigs):
+    # Solves the Schrödinger equation u´´ + V(x)u = - Eu
+    # alpha/beta: L/R boundary values
+
+    # Boundry values always zero, alpha, beta = 0
+    alpha = 0
+    beta = 0
+
+    dx = L / (N + 1)
+    points = np.linspace(L / (N + 1), L - L / (N + 1), N)
+    v = potential_f(points)
+
+    subp = np.ones(N - 1)
+    mid = np.ones(N) * (-2)
+
+    mid = mid - v
+
+    eig_range = (N - n_eigs, N - 1)
+
+    # Returns eigs in 1D array, growing size (most negative to positive, i.e. ascending)
+    eigs, eig_vecs = eigh_tridiagonal(mid, subp, select='i', select_range=eig_range)
+    # print(len(eigs))
+    print(eigs)
+    # Add boundry values to solutions
+    left_bvs = np.ones(len(eigs)) * alpha
+    right_bvs = np.ones(len(eigs)) * beta
+
+    eig_vecs = np.vstack((left_bvs, eig_vecs))
+    eig_vecs = np.vstack((eig_vecs, right_bvs))
+
+    # Add boundary points
+    points = np.insert(points, 0, 0)
+    points = np.append(points, L)
+
+    for i in range(n_eigs):
+        # Normalize eigenvectors
+        eig_vecs[:, i] = eig_vecs[:, i] * np.sqrt(N + 1) / norm(eig_vecs[:, i])
+
+        print(eigs[i])
+        # Level them (eigenvalue is negative)
+        eig_vecs[:, i] = eig_vecs[:, i] - eigs[i]
+
+        plt.figure(i)
+        plt.subplot(1, 2, 1)
+        plt.plot(points, eig_vecs[:, i])
+
+        plt.subplot(1, 2, 2)
+        plt.plot(points, eig_vecs[:, i] * eig_vecs[:, i])
+        plt.show()
+
+    return len(eigs)
