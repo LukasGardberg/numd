@@ -201,12 +201,12 @@ def shrod_solve(L, N, potential_f, n_eigs):
     points = np.linspace(L / (N + 1), L - L / (N + 1), N)
     v = potential_f(points)
 
-    subp = np.ones(N - 1)
-    mid = np.ones(N) * (-2)
+    subp = np.ones(N - 1) * 1/(dx**2)
+    mid = np.ones(N) * (-2) * 1/(dx**2)
 
     mid = mid - v
 
-    eig_range = (N - n_eigs, N - 1)
+    eig_range = (0, n_eigs)
 
     # Returns eigs in 1D array, growing size (most negative to positive, i.e. ascending)
     eigs, eig_vecs = eigh_tridiagonal(mid, subp, select='i', select_range=eig_range)
@@ -229,14 +229,28 @@ def shrod_solve(L, N, potential_f, n_eigs):
 
         print(eigs[i])
         # Level them (eigenvalue is negative)
+        eig_vecs[:,i] = eig_vecs[:,i]*150
         eig_vecs[:, i] = eig_vecs[:, i] - eigs[i]
-
-        plt.figure(i)
-        plt.subplot(1, 2, 1)
+        
+        
+        plt.figure(1)
         plt.plot(points, eig_vecs[:, i])
-
-        plt.subplot(1, 2, 2)
+        plt.show()
+        
+        plt.figure(2)
         plt.plot(points, eig_vecs[:, i] * eig_vecs[:, i])
         plt.show()
 
     return len(eigs)
+
+
+def potential_v1(x):
+    #x is a nd1-array
+    return 700*(0.5-np.abs(x-0.5))
+
+
+def potential_v2(x):
+    #x is nd1-array
+    return 800*np.power(sin(x*pi),2)
+
+    
