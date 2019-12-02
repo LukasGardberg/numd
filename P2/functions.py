@@ -3,7 +3,7 @@ from scipy import exp, sparse,sin,cos ,pi
 from scipy.sparse.linalg import spsolve
 from scipy.linalg import norm, eigh_tridiagonal
 import matplotlib.pyplot as plt
-
+from scipy.special import erf
 
 def twopBVP(fvec, alpha, beta, L, N):
     # Two point boundry value problem solver.
@@ -81,6 +81,9 @@ def vshBvp(alpha, beta, length, N):
 
     plt.loglog(step_sizes, errors)
     plt.grid()
+    plt.xlabel("Step size")
+    plt.ylabel("Error")
+    plt.title("Error vs step size")
     plt.show()
     
     
@@ -164,26 +167,40 @@ def sturm_lv_vis():
             err[n, i] = norm(eigs[i] + ((i + 1) * pi)**2)
             
         n = n + 1
-
     for i in range(3):
-        plt.figure(i)
-        plt.loglog(K, err[:, i])
-        plt.show()
-
-    plt.figure(4)
+        plt.grid()
+        if i==0:
+            plt.loglog(K, err[:, i],label = "lambda1")
+        elif i==1:
+            plt.loglog(K, err[:, i],label = "lambda2")
+        else:
+            plt.loglog(K, err[:, i],label = "lambda3")
+    x = np.linspace(0,1000,20)
+    y = np.power(x,-2)
+    plt.loglog(x,y,label ="line with slope -2")
+    plt.show()
+    plt.xlabel("Number of steps")
+    plt.ylabel("Error")
+    plt.title("logarithmic graph of error vs number of steps")
+    plt.legend()
     N = 499
 
     eigs, eigvecs = sv_solver(0,0,L,N)
     eigs = eigs[-3:]
     eigvecs = eigvecs[:, -3:]
     x = np.linspace(0, L, N+2)
-    plt.plot(x, np.flip(eigvecs[:, 1]))
-
-    print(eigs)
-
+    fig, axes = plt.subplots(1,3,sharey ='row')
+    for i in range(3):
+        axes[i].plot(x, np.flip(eigvecs[:, 2-i]))
+        axes[i].grid()
+        axes[i].set_title('Eigenmode' + str(i+1) )
+        axes[i].set_xmargin(3)
+        if i ==0:
+            axes[i].set_ylabel("y")
+        
     plt.show()
-
-
+    print(eigs)
+        
 def potential_v(x):
     # Returns a 1-D np array
     return np.zeros(len(x))
@@ -206,12 +223,12 @@ def shrod_solve(L, N, potential_f, n_eigs):
 
     mid = mid - v
 
-    eig_range = (0, n_eigs)
+    eig_range = (N-n_eigs, N-1)
 
     # Returns eigs in 1D array, growing size (most negative to positive, i.e. ascending)
     eigs, eig_vecs = eigh_tridiagonal(mid, subp, select='i', select_range=eig_range)
     # print(len(eigs))
-    print(eigs)
+    # print(eigs)
     # Add boundry values to solutions
     left_bvs = np.ones(len(eigs)) * alpha
     right_bvs = np.ones(len(eigs)) * beta
@@ -222,26 +239,31 @@ def shrod_solve(L, N, potential_f, n_eigs):
     # Add boundary points
     points = np.insert(points, 0, 0)
     points = np.append(points, L)
+    fig, axes = plt.subplots(1,2,sharey ='row')
 
     for i in range(n_eigs):
         # Normalize eigenvectors
         eig_vecs[:, i] = eig_vecs[:, i] * np.sqrt(N + 1) / norm(eig_vecs[:, i])
-
-        print(eigs[i])
+        square_eigs = eig_vecs[:, i]*eig_vecs[:,i]
         # Level them (eigenvalue is negative)
-        eig_vecs[:,i] = eig_vecs[:,i]*150
+        eig_vecs[:,i] = eig_vecs[:,i] * 20
         eig_vecs[:, i] = eig_vecs[:, i] - eigs[i]
         
+        square_eigs = square_eigs *20 -eigs[i]
         
-        plt.figure(1)
-        plt.plot(points, eig_vecs[:, i])
-        plt.show()
+        axes[0].plot(points, eig_vecs[:, i])
+        axes[0].grid()
+        axes[0].set_title('Wavefunctions')
+        axes[0].set_xlabel("x")
+        axes[0].set_ylabel("Wave function")
+        axes[1].plot(points, square_eigs)
+        axes[1].set_title("Probability function")
+        axes[1].set_xlabel("x")
+        axes[1].grid()
         
-        plt.figure(2)
-        plt.plot(points, eig_vecs[:, i] * eig_vecs[:, i])
         plt.show()
 
-    return len(eigs)
+    return eig_vecs
 
 
 def potential_v1(x):
@@ -253,4 +275,11 @@ def potential_v2(x):
     #x is nd1-array
     return 800*np.power(sin(x*pi),2)
 
-    
+def potential_v3(x):
+        ret = np.zeros(len(x))
+        for i in range(len(x)):
+            if i%2 == 0:
+                ret[i] =8
+            else:
+                ret[i] = 123
+        return ret*800
