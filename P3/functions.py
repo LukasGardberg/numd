@@ -16,10 +16,23 @@ def TRstep(Tdx, yold, dt):
 
     return spsolve(b.tocsc(), a)
 
-def LaxWenStep(yold, dt, dx):
-    mu = dt / dx
-    
-    pass
+def LaxWenStep(uold, amu):
+    size = np.size(uold)
+    sub = np.ones(size - 1) * (amu/2) * (1 + amu)
+    mid = np.ones(size) * (1 - amu**2)
+    sup = np.ones(size - 1) * (-amu/2) * (1 - amu)
+
+    bot = np.ones(1) * (amu / 2) * (amu - 1)
+    top = np.ones(1) * (amu / 2) * (amu + 1)
+
+    diagonals = [bot, sub, mid, sup, top]
+
+    Tdx = sparse.diags(diagonals, [-(size - 1), -1, 0, 1, size - 1])
+
+    print(Tdx)
+
+    return Tdx.dot(uold)
+
 
 def diffSolve(N, M, L, T, fvec):
     # Solves diffusion eq
@@ -57,5 +70,39 @@ def diffSolve(N, M, L, T, fvec):
 
     return sol
 
+
 def startVal(x):
     return np.exp(-(x-0.5)**2) - np.exp(-0.25)
+
+
+def startG(x):
+    return np.exp(-100*(x-0.5)**2)
+
+
+def advecSolve(N, M, g, a):
+    T = 5
+
+    dx = 1 / N
+    dt = T / M
+    amu = a * (dt / dx)
+
+    xx = np.linspace(0, 1, N + 1)
+    tt = np.linspace(0, T, M + 1)
+
+    uold = startG(xx)
+    uold = np.delete(uold, -1)
+
+    sol = np.zeros((M + 1, N))
+
+    sol[0, :] = uold
+
+    for i in range(1, M):
+        unew = LaxWenStep(uold, amu)
+
+        sol[i, :] = unew
+
+        uold = unew
+
+    # Add first column as last, periodic boundry
+    sol = np.hstack((sol, np.reshape(sol[:, 0], (M + 1, 1))))
+    return sol
