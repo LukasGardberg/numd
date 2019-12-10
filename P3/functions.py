@@ -4,6 +4,8 @@ from scipy import sparse
 from scipy.sparse.linalg import spsolve
 import matplotlib.pyplot as plt
 import scipy as sp
+
+
 def eulerstep(Tdx, yold, dt):
     # yold np array
     return yold + dt * Tdx.dot(yold)
@@ -29,7 +31,7 @@ def LaxWenStep(uold, amu):
 
     Tdx = sparse.diags(diagonals, [-(size - 1), -1, 0, 1, size - 1])
 
-    print(Tdx)
+    
 
     return Tdx.dot(uold)
 
@@ -89,14 +91,14 @@ def advecSolve(N, M, g, a):
     xx = np.linspace(0, 1, N + 1)
     tt = np.linspace(0, T, M + 1)
 
-    uold = startG(xx)
+    uold = g(xx)
     uold = np.delete(uold, -1)
 
     sol = np.zeros((M + 1, N))
 
     sol[0, :] = uold
 
-    for i in range(1, M):
+    for i in range(1, M+1):
         unew = LaxWenStep(uold, amu)
 
         sol[i, :] = unew
@@ -105,4 +107,6 @@ def advecSolve(N, M, g, a):
 
     # Add first column as last, periodic boundry
     sol = np.hstack((sol, np.reshape(sol[:, 0], (M + 1, 1))))
+    print(amu)
     return sol
+
