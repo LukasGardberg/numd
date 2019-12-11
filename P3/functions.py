@@ -21,6 +21,7 @@ def TRstep(Tdx, yold, dt):
 
 
 def LaxWenStep(uold, amu):
+    # Lax Wendrof step for linear eq ut = a ux
     size = np.size(uold)
     sub = np.ones(size - 1) * (amu/2) * (1 + amu)
     mid = np.ones(size) * (1 - amu**2)
@@ -176,5 +177,72 @@ def convdifsolve(N, M, g, a, d):
     sol = np.hstack((sol, np.reshape(sol[:, 0], (M + 1, 1))))
 
     print(f"Mesh Pelcet = {abs(a/d) * dx}")
+
+    return sol
+
+
+def nonlinLW(uold, Tdx, Sdx, dt):
+    # One step for nonlinear ut = u * ux
+
+    ux = Sdx.dot(uold)
+    uxx = Tdx.dot(uold)
+
+    d2 = (dt**2 / 2) * (2*uold * ux**2 + uold**2 * uxx)
+    return uold - dt * uold * ux + d2
+
+
+def burgStep(uold, Tdx, Sdx, dt, d):
+    lw = nonlinLW(uold, Tdx, Sdx, dt)
+
+    unit = sparse.diags([np.ones(len(uold))], [0])
+
+    lhs = unit - d * (dt/2) * Tdx
+    rhs = lw + d * (dt/2) * Tdx.dot(uold)
+
+    return spsolve(lhs, rhs)
+
+def visBurgSolve(N, M, g, d):
+    dx = 1 / N
+    dt = 5 / M
+
+    # Create Tdx (diffusion)
+    subp = np.ones(N - 1)
+    mid = np.ones(N) * (-2)
+
+    bottop = np.ones(1)
+
+    diagsT = [bottop, subp, mid, subp, bottop]
+
+    Tdx = 1 / (dx * dx) * sparse.diags(diagsT, [-(N - 1), -1, 0, 1, (N - 1)])
+
+    # Create Sdx (advection)
+    sub = -np.ones(N - 1)
+    sup = np.ones(N - 1)
+
+    bot = np.ones(1)
+    top = -np.ones(1)
+
+    diagsS = [bot, sub, sup, top]
+
+    Sdx = 1 / (2 * dx) * sparse.diags(diagsS, [-(N - 1), -1, 1, (N - 1)])
+
+    # Initial values
+    xx = np.linspace(0, 1, N + 1)
+    uold = g(xx)
+    uold = np.delete(uold, -1)
+
+    # Create solution matrix
+    sol = np.zeros((M + 1, N))
+
+    sol[0, :] = uold
+
+    for i in range(1, M + 1):
+        unew = burgStep(uold, Sdx, Tdx, d, dt)
+
+        sol[i, :] = unew
+
+        uold = unew
+
+    sol = np.hstack((sol, np.reshape(sol[:, 0], (M + 1, 1))))
 
     return sol
