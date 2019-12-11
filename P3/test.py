@@ -84,14 +84,14 @@ from mpl_toolkits.mplot3d import axes3d
 #%% Part 4
 
 # Points in space
-N = 100
+N = 250
 # Points in time
 M = 1000
 
-d = 0.5
+d = 0.1
 
 xx = np.linspace(0, 1, N + 1)
-tt = np.linspace(0, 5, M + 1)
+tt = np.linspace(0, 1, M + 1)
 
 fig1 = plt.figure(1)
 ax = fig1.add_subplot(111, projection='3d')

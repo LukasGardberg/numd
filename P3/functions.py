@@ -202,8 +202,11 @@ def burgStep(uold, Tdx, Sdx, dt, d):
     return spsolve(lhs, rhs)
 
 def visBurgSolve(N, M, g, d):
+    # N: points in space
+    # M: points in time
+
     dx = 1 / N
-    dt = 5 / M
+    dt = 1 / M
 
     # Create Tdx (diffusion)
     subp = np.ones(N - 1)
