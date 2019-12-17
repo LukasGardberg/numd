@@ -55,13 +55,13 @@ def diffSolve(N, M, L, T, fvec):
     sol = np.zeros((M + 1, N))
     sol[0, :] = fvec
 
-    # yold = eulerstep(Tdx, fvec, dt)
+    #yold = eulerstep(Tdx, fvec, dt)
     yold = TRstep(Tdx, fvec, dt)
 
     sol[1, :] = yold
 
     for i in range(2, M):
-        # ynew = eulerstep(Tdx, yold, dt)
+        #ynew = eulerstep(Tdx, yold, dt)
         ynew = TRstep(Tdx, yold, dt)
 
         sol[i, :] = ynew
@@ -70,16 +70,16 @@ def diffSolve(N, M, L, T, fvec):
     boundry = np.zeros((M + 1, 1))
     sol = np.hstack([sol, boundry])
     sol = np.hstack([boundry, sol])
-
+    print(dt/dx**2)
     return sol
 
 
 def startVal(x):
-    return np.exp(-(x-0.5)**2) - np.exp(-0.25)
+    return 5*(np.exp(-(x-0.5)**2) -np.exp(-0.25))
 
 
 def startG(x):
-    return np.exp(-100*(x-0.5)**2)
+    return 3*np.exp(-100*(x-0.5)**2)
 
 
 def startF(x):
@@ -177,17 +177,16 @@ def convdifsolve(N, M, g, a, d):
     sol = np.hstack((sol, np.reshape(sol[:, 0], (M + 1, 1))))
 
     print(f"Mesh Pelcet = {abs(a/d) * dx}")
-
+    print(abs(a/d))
     return sol
 
 
 def nonlinLW(uold, Tdx, Sdx, dt):
-    # One step for nonlinear ut = u * ux
+    # One step for nonlinear ut = -u * ux
 
     ux = Sdx.dot(uold)
     uxx = Tdx.dot(uold)
-
-    d2 = (dt**2 / 2) * (2*uold * ux**2 + uold**2 * uxx)
+    d2 = (dt**2 / 2) * ((2*uold * (ux**2)) + (uold**2) * uxx)
     return uold - dt * uold * ux + d2
 
 
@@ -199,7 +198,7 @@ def burgStep(uold, Tdx, Sdx, dt, d):
     lhs = unit - d * (dt/2) * Tdx
     rhs = lw + d * (dt/2) * Tdx.dot(uold)
 
-    return spsolve(lhs, rhs)
+    return spsolve(lhs.tocsc(), rhs)
 
 def visBurgSolve(N, M, g, d):
     # N: points in space
@@ -217,7 +216,7 @@ def visBurgSolve(N, M, g, d):
     diagsT = [bottop, subp, mid, subp, bottop]
 
     Tdx = 1 / (dx * dx) * sparse.diags(diagsT, [-(N - 1), -1, 0, 1, (N - 1)])
-
+    
     # Create Sdx (advection)
     sub = -np.ones(N - 1)
     sup = np.ones(N - 1)
@@ -238,12 +237,14 @@ def visBurgSolve(N, M, g, d):
     sol = np.zeros((M + 1, N))
 
     sol[0, :] = uold
+    
+    # Taking M time steps
 
     for i in range(1, M + 1):
-        unew = burgStep(uold, Sdx, Tdx, d, dt)
+        unew = burgStep(uold, Tdx, Sdx, dt, d)
 
         sol[i, :] = unew
-
+        
         uold = unew
 
     sol = np.hstack((sol, np.reshape(sol[:, 0], (M + 1, 1))))
