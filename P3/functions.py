@@ -79,7 +79,7 @@ def startVal(x):
 
 
 def startG(x):
-    return 3*np.exp(-100*(x-0.5)**2)
+    return np.exp(-100*(x-0.5)**2)
 
 
 def startF(x):
